@@ -8,17 +8,15 @@ public class Game
     private Deck deck;
     private Table table;
     private List<Card> selectedCards = new List<Card>();
-    private bool isGameOver;
-
+    
     // Initializes the deck, table, and game state.
     public Game()
     {
         deck = new Deck();
         table = new Table();
-        isGameOver = false;
     }
 
-    // NEW: Public accessor to get the Table instance.
+    // Public accessor to get the Table instance.
     public Table getTable()
     {
         return table;
@@ -29,7 +27,6 @@ public class Game
     {
         deck.shuffle();
         refillTable();
-        isGameOver = false;
     }
 
     // Marks a card as selected by the player.
@@ -76,6 +73,7 @@ public class Game
     // Refills the table with new cards until full (maxCards=9) or deck is empty.
     public void refillTable()
     {
+        // Try to refill to 9 cards
         while (table.getCardCount() < 9 && !deck.isEmpty())
         {
             Card? card = deck.dealCard();
@@ -96,13 +94,8 @@ public class Game
     // Checks if no valid moves remain (player loses).
     public bool checkGameLose()
     {
-        // If the deck is empty and no legal moves exist on the table
-        if (deck.isEmpty() && !new MoveValidator().hasLegalMoves(table.getCards()))
-        {
-            isGameOver = true;
-            return true;
-        }
-        return false;
+        // Loss condition: No legal moves exist on the table (it's stuck).
+        return !new MoveValidator().hasLegalMoves(table.getCards());
     }
 
     // Resets the game with a fresh deck and table.
@@ -111,7 +104,6 @@ public class Game
         deck = new Deck();
         table = new Table();
         selectedCards.Clear();
-        isGameOver = false;
         startGame();
     }
 
@@ -136,20 +128,19 @@ public class Game
             Console.WriteLine($"\n[ACTION]: Valid selection made ({selectedCards.Count} cards). Removing...");
             table.removeCards(selectedCards);
             selectedCards.Clear();
+            
+            // Refill the table
             refillTable();
+
             Console.WriteLine("Move successful. Table refilled.");
         }
         else
         {
             displayWarning($"Invalid selection (Count: {selectedCards.Count}). Cleared selection.");
+            // Must clear the selection if it was invalid
             selectedCards.Clear();
         }
-        // In a real game, you would update the UI here.
-        updateFeedback();
         
-        if (checkGameLose())
-        {
-            Console.WriteLine("\n[GAME OVER]: No legal moves remain and the deck is empty. You lose.");
-        }
+        updateFeedback();
     }
 }

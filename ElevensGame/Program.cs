@@ -1,80 +1,115 @@
-﻿ Console.WriteLine("--- Elevens Game Class Integration Test ---");
-        
-        // 1. Card/Deck Sanity Check
-        Card testCard = new Card("Queen", "Hearts", 10);
-        Console.WriteLine($"\n1. Card Test: {testCard.ToString()} (Value: {testCard.getValue()})"); 
-        
-        Deck deck = new Deck();
-        Card? firstCard = deck.dealCard(); 
-        Console.WriteLine($"Initial Deal (1/52): {firstCard?.ToString()}"); 
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
-        Console.WriteLine("\n--- Table, Validator, and Game Test ---");
-
-        // 2. Table Class Test
-        Table testTable = new Table();
-        testTable.addCard(new Card("4", "Hearts", 4));
-        testTable.addCard(new Card("7", "Clubs", 7));
-        Console.WriteLine($"\n2. Table Test: Card count = {testTable.getCardCount()} (Expected 2)");
+class Program
+{
+    // Helper method to display the cards on the table with their corresponding index number.
+    static void DisplayTable(Table table)
+    {
+        Console.WriteLine("\n==============================================");
+        Console.WriteLine("                CARDS ON TABLE                ");
+        Console.WriteLine("==============================================");
         
-        // 3. MoveValidator Class Test
-        MoveValidator validator = new MoveValidator();
-        Card five = new Card("5", "Spades", 5);
-        Card six = new Card("6", "Diamonds", 6);
-        Card jack = new Card("Jack", "Hearts", 10);
-        Card queen = new Card("Queen", "Clubs", 10);
-        Card king = new Card("King", "Diamonds", 10);
-
-        Console.WriteLine("\n3. MoveValidator Test:");
-        
-        // Valid Pair Test (5 + 6 = 11)
-        List<Card> pair = new List<Card> { five, six };
-        Console.WriteLine($"  Valid Pair (5, 6) check: {validator.isValidPair(pair)} (Expected True)");
-        
-        // Valid Triple Test (J, Q, K)
-        List<Card> triple = new List<Card> { jack, queen, king };
-        Console.WriteLine($"  Valid Triple (J, Q, K) check: {validator.isValidTriple(triple)} (Expected True)");
-        
-        // Has Legal Moves Test
-        List<Card> legalTable = new List<Card> { five, six, new Card("2", "C", 2) };
-        Console.WriteLine($"  Has Legal Moves (5, 6, 2) check: {validator.hasLegalMoves(legalTable)} (Expected True)");
-
-        // 4. Game Class Test
-        Console.WriteLine("\n4. Game Initialization and Move Test:");
-        Game game = new Game();
-        game.startGame();
-        
-        // Use getTable() accessor instead of direct field access
-        Table currentTable = game.getTable(); 
-        
-        Console.WriteLine($"  Game started. Table has {currentTable.getCards().Count} cards.");
-        
-        // Find cards to make a legal move for demonstration
-        Card? c_jack = currentTable.getCards().FirstOrDefault(c => c.getRank() == "Jack");
-        Card? c_queen = currentTable.getCards().FirstOrDefault(c => c.getRank() == "Queen");
-        Card? c_king = currentTable.getCards().FirstOrDefault(c => c.getRank() == "King");
-        
-        if (c_jack != null && c_queen != null && c_king != null)
+        List<Card> cards = table.getCards();
+        if (cards.Count == 0)
         {
-            Console.WriteLine("\n  Attempting to process a valid J-Q-K triple...");
-            game.selectCard(c_jack);
-            game.selectCard(c_queen);
-            game.selectCard(c_king);
-            game.processMove();
+            Console.WriteLine("    The table is empty! You're close to winning!");
         }
         else
         {
-            Console.WriteLine("\n  A J-Q-K set was not found on the initial table. Testing an invalid move.");
-            
-            // Invalid move test (select two cards)
-            if (currentTable.getCards().Count >= 2)
+            for (int i = 0; i < cards.Count; i++)
             {
-                game.selectCard(currentTable.getCards()[0]);
-                game.selectCard(currentTable.getCards()[1]);
-                game.processMove(); // Should print WARNING
+                // Display 1-based index for the user
+                Console.WriteLine($"[{i + 1}]: {cards[i].ToString()} (Value: {cards[i].getValue()})");
             }
         }
+        Console.WriteLine("==============================================");
+    }
 
-        // Test restart
-        game.restartGame();
-        Console.WriteLine($"\n  Game restarted. Table now has {game.getTable().getCards().Count} cards.");
-   
+    // Main game execution method.
+    static void Main(string[] args)
+    {
+        Game game = new Game();
+        game.startGame();
+
+        Console.WriteLine("--- Welcome to the Elevens Console Game! ---");
+        Console.WriteLine("Instructions:");
+        Console.WriteLine("1. Clear the table by finding pairs that sum to 11 (A-10) or sets of J, Q, K.");
+        Console.WriteLine("2. Enter the index number (1-9) of the cards you wish to select, separated by spaces.");
+        Console.WriteLine("   Example: To select card 2 and card 5, type: 2 5");
+        Console.WriteLine("   To exit the game, type: quit\n");
+        
+        // Main game loop
+        while (!game.checkGameWin() && !game.checkGameLose())
+        {
+            DisplayTable(game.getTable());
+            game.updateFeedback(); // Show deck/table count
+
+            Console.Write("\nEnter selection (e.g., 1 5 9): ");
+            string? input = Console.ReadLine()?.Trim().ToLower();
+
+            if (string.IsNullOrEmpty(input) || input == "quit")
+            {
+                break;
+            }
+
+            // --- Input Processing ---
+            List<Card> currentTableCards = game.getTable().getCards();
+            
+            // Parse indices from input string
+            List<int> selectedIndices = new List<int>();
+            try
+            {
+                selectedIndices = input.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                                       .Select(s => int.Parse(s))
+                                       .ToList();
+            }
+            catch (FormatException)
+            {
+                game.displayWarning("Invalid input format. Please enter numbers separated by spaces.");
+                continue;
+            }
+            
+            // Select the cards in the Game object
+            bool selectionFailed = false;
+            foreach (int index in selectedIndices.Distinct())
+            {
+                if (index >= 1 && index <= currentTableCards.Count)
+                {
+                    game.selectCard(currentTableCards[index - 1]);
+                }
+                else
+                {
+                    game.displayWarning($"Invalid card number: {index}. Selection cleared.");
+                    selectionFailed = true;
+                    break;
+                }
+            }
+
+            // If selection failed, the loop continues and the game selection is implicitly cleared/overwritten on the next valid selection attempt.
+            if (!selectionFailed)
+            {
+                game.processMove(); 
+            }
+        }
+        
+        // --- End Game Logic ---
+        Console.WriteLine("\n==============================================");
+        if (game.checkGameWin())
+        {
+            Console.WriteLine("CONGRATULATIONS! YOU CLEARED THE DECK AND THE TABLE! YOU WIN!");
+        }
+        else if (game.checkGameLose())
+        {
+            // CRITICAL FIX: Display the final, stuck table state before the Game Over message.
+            DisplayTable(game.getTable()); 
+            Console.WriteLine("GAME OVER: No legal moves left on the table. You lose.");
+        }
+        else
+        {
+            Console.WriteLine("Game quit by user. Thank you for playing!");
+        }
+        Console.WriteLine("==============================================");
+    }
+}
