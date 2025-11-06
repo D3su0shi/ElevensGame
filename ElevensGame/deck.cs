@@ -4,7 +4,9 @@ using System.Linq;
 
 public class Deck
 {
-     private List<Card> cards = new List<Card>(); 
+    // Fields
+    // Initialized inline to silence CS8618 warning.
+    private List<Card> cards = new List<Card>();
     private int currentCardIndex;
     private static Random Rng = new Random(); 
 
@@ -17,7 +19,7 @@ public class Deck
     // Populates the deck with 52 standard playing cards.
     private void InitializeDeck()
     {
-        cards = new List<Card>(52);
+        cards.Clear();
         currentCardIndex = 0;
 
         for (int i = 0; i < Card.Suits.Length; i++)
@@ -59,8 +61,8 @@ public class Deck
         }
     }
 
-    // Deals and returns the next card from the deck (made nullable with '?').
-    public Card? dealCard() // Fixed CS8603 warning
+    // Deals and returns the next card from the deck (nullable).
+    public Card? dealCard() 
     {
         if (currentCardIndex < cards.Count)
         {
@@ -73,5 +75,11 @@ public class Deck
     public bool isEmpty()
     {
         return currentCardIndex >= cards.Count;
+    }
+    
+    // NEW: Returns the number of cards remaining in the deck.
+    public int getRemainingCardCount()
+    {
+        return cards.Count - currentCardIndex;
     }
 }
