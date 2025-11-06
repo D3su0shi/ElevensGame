@@ -1,4 +1,4 @@
-#Compiling and Running the Game
+# Compiling and Running the Game
 
 Assuming you have the .NET SDK installed, you can easily compile and run this game from your terminal or command prompt.
 1. Save Files and Create Project
@@ -155,4 +155,5 @@ Elevens (Project 1) - the final submission
     - actual game logic and run test
     - bug where game doesnt end when no legal moves exist fixed
     - diplays table showing that there are no valid legal moves left before quiting the game
+
 
