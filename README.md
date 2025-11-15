@@ -16,8 +16,8 @@ dotnet run
 
 The game will then start in your console, displaying the instructions and the initial table of cards.
 
-📝 Game Summary and Development Retrospective
 Game Summary
+
 The Elevens Console Game is a card-clearing game based on the rules of Elevens.
 Objective: Clear the table of cards by making legal moves and empty the entire deck.
 Legal Moves:
@@ -155,5 +155,6 @@ Elevens (Project 1) - the final submission
     - actual game logic and run test
     - bug where game doesnt end when no legal moves exist fixed
     - diplays table showing that there are no valid legal moves left before quiting the game
+
 
 
